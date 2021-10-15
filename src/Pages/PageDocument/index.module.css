@@ -1,0 +1,11 @@
+.wrap{
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    min-height: 300px;
+    box-sizing: border-box;
+    background-color: #e3e3e3;
+    overflow: hidden;
+}

@@ -1,0 +1,7 @@
+.warp{
+    padding: 15px 130px;
+    height: 100%;
+    width: calc(100% - 260px);
+    z-index: 1000;
+    overflow: auto auto;
+}

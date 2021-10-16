@@ -1,8 +1,7 @@
 .warp{
-    position: fixed;
-    right: 17px;
-    top: 0;
     width: 120px;
     height: 100%;
-    background-color: #fff;
+    background-color: rgb(245, 245, 245);
+    box-shadow: -1px 0 0 1px rgb(229, 229, 229);
+    box-sizing: border-box;
 }

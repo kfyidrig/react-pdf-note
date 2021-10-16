@@ -1,5 +1,5 @@
 import css from './index.module.css';
-import {useEffect,useState} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import {handleDoc} from "../../shared/pdf2png";
 import PdfPage from "../PdfPage";
 import {initScrollListener} from "../../shared/scrollListen";
@@ -10,12 +10,13 @@ const store={
 }
 
 export default function NotePdf({pdf, wrapRef}){
+
     const [pdfDocProxy,setPdf]=useState(null);
     const [pdfPageTask,setPdfPage]=useState([]);
 
     useEffect(function () {
         if(!wrapRef.current) throw TypeError('NotePad父容器为空');
-        store.wrapWidth=wrapRef.current.clientWidth - 270;
+        store.wrapWidth=wrapRef.current.clientWidth - 280;
         initScrollListener(wrapRef.current);
     },[wrapRef]);
 
@@ -28,7 +29,7 @@ export default function NotePdf({pdf, wrapRef}){
                 console.info('文档初始化成功');
                 store.pdf=null;
                 setPdf(res);
-            })
+            });
         }
     },[pdf]);
 

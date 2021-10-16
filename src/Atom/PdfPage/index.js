@@ -7,6 +7,7 @@ const dpi=devicePixelRatio;
 
 function NoteAndCanvas({pdfPage,view}){
     const canvasRef=React.createRef();
+
     useEffect(function () {
         const canvas=canvasRef.current;
         canvas.width=(view.width);
@@ -16,7 +17,7 @@ function NoteAndCanvas({pdfPage,view}){
             viewport: view,
             canvasContext: context
         })
-    },[canvasRef,view,pdfPage]);
+    },[]);
     return <canvas
         ref={canvasRef}
         style={{

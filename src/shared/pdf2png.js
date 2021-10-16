@@ -17,7 +17,7 @@ const handleDoc= document=>{
     cMapPacked: CMAP_PACKED,
     fontExtraProperties: true,
   });
-  return loadingTask.promise;
+  return loadingTask;
 }
 
 export {

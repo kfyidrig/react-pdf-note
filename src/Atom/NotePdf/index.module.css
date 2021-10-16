@@ -1,6 +1,22 @@
 .warp{
     margin: 0 auto;
-    height: 100%;
     width: 100%;
-    overflow: auto auto;
+    height: 100%;
+    overflow: auto;
+}
+
+.progressWrap{
+    margin: 35vh auto;
+}
+.progressBar{
+    margin: 0 auto;
+    width: 40%;
+    height: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 0 1px #ecf0f1;
+}
+.progressTip{
+    text-align: center;
+    font-size: 17px;
+    color: #3e5771;
 }

@@ -5,6 +5,7 @@ const callbacks= {};
 const lastStatus={};
 
 const handlePositionMid=changList=>{
+
     handlePosition(changList,callbacks,lastStatus);
 }
 
@@ -12,7 +13,7 @@ const initScrollListener=container=>{
     listener = new IntersectionObserver(handlePositionMid,{
         root: container,
         rootMargin: '0px',
-        threshold: [0, 0.2,0.4,0.6,0.8,1]
+        threshold: [0, 0.1,0.2,0.3,0.4,0.5,1]
     });
     console.log('滚动监听已初始化');
 }

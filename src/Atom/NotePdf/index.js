@@ -1,51 +1,126 @@
 import css from './index.module.css';
-import {useEffect, useMemo, useState} from 'react'
-import {handleDoc} from "../../shared/pdf2png";
+import {useEffect, useMemo, useState,useCallback,useContext} from 'react';
+import {handleDoc, handlePage} from "../../shared/pdf2png";
 import PdfPage from "../PdfPage";
 import {initScrollListener} from "../../shared/scrollListen";
+import PageAndBarContext from "../../shared/pageContext";
 
 const store={
     pdf: null,
     wrapWidth: 0
 }
 
+const PdfProgress=({loadingTask})=>{
+    // 组件更新更新标志，防止进度频繁更新组件
+    // eslint-disable-next-line
+    let updatedFlag=false;
+
+    const [progress,setProgress]=useState({
+        loaded: 1,
+        total: 100
+    });
+
+    const handleProgress=useCallback(pro=>{
+        if(updatedFlag) return;
+        setProgress(pro);
+        // eslint-disable-next-line
+        updatedFlag=true;
+    },[]);
+
+    useEffect(function () {
+        loadingTask.onProgress=handleProgress;
+        return ()=>loadingTask.onProgress=null;
+    },[loadingTask,handleProgress]);
+
+    const percentage=`${Math.floor((progress.loaded/progress.total)*100)}%`;
+
+    return <div className={css.progressWrap}>
+        <div
+            className={css.progressBar}
+            style={{
+                backgroundImage: `linear-gradient(to right,#16a085 0%,#16a085 ${percentage},#ecf0f1 ${percentage},#ecf0f1 100%)`
+            }}
+        />
+        <p className={css.progressTip}>
+            PDF加载中，目前 {percentage} (总共 {(progress.total / 1048576).toFixed(1)} MB)
+        </p>
+    </div>
+};
+
 export default function NotePdf({pdf, wrapRef}){
+    const {pageScale}=useContext(PageAndBarContext);
+    const wrapWidth=wrapRef.current.clientWidth;
 
-    const [pdfDocProxy,setPdf]=useState(null);
-    const [pdfPageTask,setPdfPage]=useState([]);
+    // 在pdf文档链接变化时加载pdfDocTask
+    const pdfDocTask=useMemo(()=>handleDoc(pdf),[pdf]);
+
+    // 储存加载完成后的pdf的代理对象和viewport
+    const [pdfStore,setPdfStore]=useState({
+        pdfProxy: null,
+        viewport: null,
+        firstPage:null
+    });
+
+    /**
+     * @Description: 获取加载成功的pdfDocTask信息储存在pdfStore中
+     * @author Liu Can
+     * @email 313720186@qq.com
+     * @date 2021/10/16
+     * @param {object} proxy
+     * @return void
+    */
+    useEffect(function () {
+        const getViewport=page=>{
+            const width=wrapWidth>500 ? wrapWidth-280 : 500;
+            const viewport = page.getViewport({scale: 1.0});
+            const scale=(devicePixelRatio * width/(viewport.width)).toFixed(1);
+            pdfStore.firstPage=page;
+            pdfStore.viewport=page.getViewport({
+                scale: + scale
+            });
+            setPdfStore({...pdfStore});
+        }
+        const getPage=async proxy=>{
+            const {numPages}=proxy;
+            if(numPages<1) throw new RangeError(`pdf文档页数为${numPages}`);
+            pdfStore.pdfProxy=proxy;
+            handlePage(proxy,1).then(getViewport);
+        }
+        pdfDocTask.promise.then(getPage);
+        // eslint-disable-next-line
+    },[pdfDocTask]);
 
     useEffect(function () {
-        if(!wrapRef.current) throw TypeError('NotePad父容器为空');
-        store.wrapWidth=wrapRef.current.clientWidth - 280;
-        initScrollListener(wrapRef.current);
-    },[wrapRef]);
-
-    useEffect(function () {
-        if(store.pdf){
-
-        } else {
-            store.pdf=pdf;
-            handleDoc(pdf).then(res=>{
-                console.info('文档初始化成功');
-                store.pdf=null;
-                setPdf(res);
+        if(pageScale){
+            const lastScale=pageScale + pdfStore.viewport.scale;
+            setPdfStore({
+                ...pdfStore,
+                viewport: pdfStore.firstPage.getViewport({
+                    scale: lastScale
+                })
             });
         }
-    },[pdf]);
+    },[pageScale]);
 
+    // 初始化监听器，在另一个线程中监听父容器滚动
     useEffect(function () {
-        if(pdfDocProxy) setPdfPage(
-            Array.from(new Array(pdfDocProxy.numPages), (item,index)=> false));
-    },[pdfDocProxy]);
+        if(!wrapRef.current) throw TypeError('NotePad父容器为空');
+        store.wrapWidth=wrapWidth - 280;
+        initScrollListener(wrapRef.current);
+    },[wrapRef,wrapWidth]);
 
     return <div className={css.warp}>
-        {pdfPageTask.map((page,pageNum)=>{
-            return <PdfPage
-                key={`${pageNum}${pdf}`}
-                pageNum={pageNum+1}
-                pdfDocProxy={pdfDocProxy}
-                wrapWidth={store.wrapWidth}
-            />
-        })}
+        {pdfDocTask && !(pdfStore.pdfProxy)?
+            <PdfProgress loadingTask={pdfDocTask} />
+            :
+            Array.from(new Array(pdfStore.pdfProxy.numPages),(item,index)=>{
+                const pageNum=index+1;
+                return <PdfPage
+                    key={`${pageNum}${pdf}`}
+                    pdfStore={pdfStore}
+                    pageNum={pageNum}
+                />
+            })
+        }
     </div>
 }

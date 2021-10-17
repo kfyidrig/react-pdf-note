@@ -1,5 +1,5 @@
 import css from './index.module.css';
-import {useEffect, useMemo, useState,useCallback,useContext} from 'react';
+import {useEffect, useMemo, useState,useContext} from 'react';
 import {handleDoc, handlePage} from "../../shared/pdf2png";
 import PdfPage from "../PdfPage";
 import {initScrollListener} from "../../shared/scrollListen";
@@ -11,26 +11,19 @@ const store={
 }
 
 const PdfProgress=({loadingTask})=>{
-    // 组件更新更新标志，防止进度频繁更新组件
-    // eslint-disable-next-line
-    let updatedFlag=false;
 
     const [progress,setProgress]=useState({
-        loaded: 1,
-        total: 100
+        loaded: 0,
+        total: 100,
+        toMbSize: null
     });
 
-    const handleProgress=useCallback(pro=>{
-        if(updatedFlag) return;
-        setProgress(pro);
-        // eslint-disable-next-line
-        updatedFlag=true;
-    },[]);
-
     useEffect(function () {
-        loadingTask.onProgress=handleProgress;
-        return ()=>loadingTask.onProgress=null;
-    },[loadingTask,handleProgress]);
+        loadingTask.onProgress=setProgress;
+        return ()=> {
+            loadingTask.onProgress = null;
+        };
+    },[loadingTask]);
 
     const percentage=`${Math.floor((progress.loaded/progress.total)*100)}%`;
 
@@ -71,7 +64,7 @@ export default function NotePdf({pdf, wrapRef}){
     */
     useEffect(function () {
         const getViewport=page=>{
-            const width=wrapWidth>500 ? wrapWidth-280 : 500;
+            const width=wrapWidth>500 ? wrapWidth-240 : 500;
             const viewport = page.getViewport({scale: 1.0});
             const scale=(devicePixelRatio * width/(viewport.width)).toFixed(1);
             pdfStore.firstPage=page;
@@ -91,7 +84,7 @@ export default function NotePdf({pdf, wrapRef}){
     },[pdfDocTask]);
 
     useEffect(function () {
-        if(pageScale){
+        if(pdfStore.viewport){
             const lastScale=pageScale + pdfStore.viewport.scale;
             setPdfStore({
                 ...pdfStore,
@@ -100,12 +93,13 @@ export default function NotePdf({pdf, wrapRef}){
                 })
             });
         }
+        // eslint-disable-next-line
     },[pageScale]);
 
     // 初始化监听器，在另一个线程中监听父容器滚动
     useEffect(function () {
         if(!wrapRef.current) throw TypeError('NotePad父容器为空');
-        store.wrapWidth=wrapWidth - 280;
+        store.wrapWidth=wrapWidth - 240;
         initScrollListener(wrapRef.current);
     },[wrapRef,wrapWidth]);
 

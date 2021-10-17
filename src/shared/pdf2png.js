@@ -5,6 +5,7 @@ const CMAP_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@2.10.377/cmaps/";
 const CMAP_PACKED = true;
 const WORKER= "https://cdn.jsdelivr.net/npm/pdfjs-dist@2.10.377/legacy/build/pdf.worker.min.js";
 GlobalWorkerOptions.workerSrc=WORKER;
+console.log(GlobalWorkerOptions)
 
 const handlePage=async (doc,pageNum)=> {
     return doc.getPage(pageNum);

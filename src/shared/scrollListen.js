@@ -10,6 +10,10 @@ const handlePositionMid=changList=>{
 }
 
 const initScrollListener=container=>{
+    if(listener) {
+        listener.disconnect();
+        listener=null;
+    }
     listener = new IntersectionObserver(handlePositionMid,{
         root: container,
         rootMargin: '0px',

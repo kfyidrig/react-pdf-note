@@ -6,8 +6,13 @@ import NotePdf from "../../Atom/NotePdf";
 import PageAndBarContext from "../../shared/pageContext";
 import wrapRef from "../../shared/wrapRef";
 
-export default function PageDocument() {
-    const [wrapWidth,setWidth]=useState(0);
+export default function PdfDoc({pdfs}) {
+    if(Array.isArray(pdfs)){
+        throw new TypeError('pdfs属性应该是数组');
+    } else if(pdfs.length<1){
+        throw new RangeError('pdfs数组长度至少应该大于0');
+    }
+    const [currentPdf,setWidth]=useState(pdfs[0]);
     const [pageScale,setScale]=useState(0);
 
     const providerValue=useMemo(()=>{
@@ -33,7 +38,7 @@ export default function PageDocument() {
             {wrapRef.current?
                 <NotePdf
                     wrapRef={wrapRef}
-                    pdf='https://s-cd-920-oss-assets.oss.dogecdn.com/doc1.pdf'
+                    pdf={currentPdf}
                 />
                 :
                 null

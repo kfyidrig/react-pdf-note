@@ -1,0 +1,14 @@
+.wrap{
+    position: absolute;
+    display: grid;
+    grid-template-columns: 120px 1fr 120px;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    min-height: 300px;
+    min-width: 300px;
+    box-sizing: border-box;
+    background-color: #e2e2e2;
+    overflow: auto;
+}

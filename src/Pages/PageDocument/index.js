@@ -30,7 +30,7 @@ export default function PageDocument() {
     return <div className={css.wrap} ref={wrapRef}>
         <PageAndBarContext.Provider value={providerValue}>
             <LeftBar  />
-            {wrapRef.current?
+            {wrapRef.current && wrapWidth?
                 <NotePdf
                     wrapRef={wrapRef}
                     pdf='https://s-cd-920-oss-assets.oss.dogecdn.com/doc1.pdf'

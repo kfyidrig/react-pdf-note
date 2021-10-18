@@ -33,7 +33,7 @@ export default function PageDocument() {
             {wrapRef.current && wrapWidth?
                 <NotePdf
                     wrapRef={wrapRef}
-                    pdf='https://s-cd-920-oss-assets.oss.dogecdn.com/doc1.pdf'
+                    pdf='https://s-cd-920-oss-assets.oss.dogecdn.com/doc3.pdf'
                 />
                 :
                 null

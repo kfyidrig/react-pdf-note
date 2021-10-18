@@ -31,6 +31,7 @@ function NoteAndCanvas({pageNum,view,proxy}){
 }
 
 export default function PdfPage({pdfStore,pageNum}){
+
     // eslint-disable-next-line
     let updatedFlag=true;
 

@@ -76,6 +76,8 @@ export default function NotePdf({pdf, wrapRef}){
         const getPage=async proxy=>{
             const {numPages}=proxy;
             if(numPages<1) throw new RangeError(`pdf文档页数为${numPages}`);
+            pdfStore.pdfProxy?.destroy();
+            pdfStore.pdfProxy?.cleanup();
             pdfStore.pdfProxy=proxy;
             handlePage(proxy,1).then(getViewport);
         }

@@ -9,16 +9,30 @@ function NoteAndCanvas({pageNum,view,proxy}){
     const canvasRef=React.createRef();
 
     useEffect(function () {
-        handlePage(proxy,pageNum).then(page=>{
+        const renderToCanvas=page=>{
+            console.log(page)
             const canvas=canvasRef.current;
+            if(!canvas){
+                console.warn(`渲染${pageNum}时画布为空`);
+                return;
+            }
             canvas.width=(view.width);
             canvas.height=(view.height);
             const context=canvas.getContext('2d');
             page.render({
                 viewport: view,
                 canvasContext: context
-            })
+            });
+        }
+        let timer=null;
+        handlePage(proxy,pageNum).then(page=>{
+             timer=setTimeout(()=>{
+                renderToCanvas(page);
+            },200);
         });
+        return ()=>{
+            clearTimeout(timer);
+        };
         // eslint-disable-next-line
     },[view]);
     return <canvas
@@ -32,9 +46,6 @@ function NoteAndCanvas({pageNum,view,proxy}){
 
 export default function PdfPage({pdfStore,pageNum}){
 
-    // eslint-disable-next-line
-    let updatedFlag=true;
-
     if(!pdfStore?.viewport || !pdfStore.pdfProxy) {
         throw new TypeError('PdfPage组件缺少参数');
     }
@@ -44,12 +55,8 @@ export default function PdfPage({pdfStore,pageNum}){
     const pageRef=useMemo(()=>React.createRef(),[]);
 
     const handleShow=useCallback((status)=>{
-        console.log(status,pageNum)
-        if(!updatedFlag) return;
-        // eslint-disable-next-line
-        updatedFlag=false;
         setShow(status==='show');
-    },[pageNum]);
+    },[]);
 
     useEffect(function () {
         if(!pageRef.current) throw new TypeError('pageRef 不存在');

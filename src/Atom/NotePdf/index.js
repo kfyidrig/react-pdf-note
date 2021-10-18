@@ -5,11 +5,6 @@ import PdfPage from "../PdfPage";
 import {initScrollListener} from "../../shared/scrollListen";
 import PageAndBarContext from "../../shared/pageContext";
 
-const store={
-    pdf: null,
-    wrapWidth: 0
-}
-
 const PdfProgress=({loadingTask})=>{
 
     const [progress,setProgress]=useState({
@@ -42,7 +37,7 @@ const PdfProgress=({loadingTask})=>{
 
 export default function NotePdf({pdf, wrapRef}){
     const {pageScale}=useContext(PageAndBarContext);
-    const wrapWidth=wrapRef.current.clientWidth;
+    const wrapWidth=wrapRef.current.clientWidth - 240;
 
     // 在pdf文档链接变化时加载pdfDocTask
     const pdfDocTask=useMemo(()=>handleDoc(pdf),[pdf]);
@@ -64,7 +59,7 @@ export default function NotePdf({pdf, wrapRef}){
     */
     useEffect(function () {
         const getViewport=page=>{
-            const width=wrapWidth>500 ? wrapWidth-240 : 500;
+            const width=wrapWidth>300 ? wrapWidth : 300;
             const viewport = page.getViewport({scale: 1.0});
             const scale=(devicePixelRatio * width/(viewport.width)).toFixed(1);
             pdfStore.firstPage=page;
@@ -101,9 +96,8 @@ export default function NotePdf({pdf, wrapRef}){
     // 初始化监听器，在另一个线程中监听父容器滚动
     useEffect(function () {
         if(!wrapRef.current) throw TypeError('NotePad父容器为空');
-        store.wrapWidth=wrapWidth - 240;
         initScrollListener(wrapRef.current);
-    },[wrapRef,wrapWidth]);
+    },[wrapRef]);
 
     return <div className={css.warp}>
         {pdfDocTask && !(pdfStore.pdfProxy)?

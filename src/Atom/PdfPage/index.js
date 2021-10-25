@@ -10,7 +10,7 @@ function NoteAndCanvas({pageNum,view,proxy}){
 
     useEffect(function () {
         const renderToCanvas=page=>{
-            console.log(page)
+            page.cleanupAfterRender=true;
             const canvas=canvasRef.current;
             if(!canvas){
                 console.warn(`渲染${pageNum}时画布为空`);

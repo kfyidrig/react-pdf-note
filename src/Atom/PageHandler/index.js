@@ -2,45 +2,19 @@ import css from './index.module.css';
 import {useEffect, useMemo, useState,useContext} from 'react';
 import {handleDoc, handlePage} from "../../shared/pdf2png";
 import PdfPage from "../PdfPage";
-import {initScrollListener} from "../../shared/scrollListen";
 import PageAndBarContext from "../../shared/pageContext";
+import TaskProgress from "../TaskProgress";
 
-const PdfProgress=({loadingTask})=>{
-
-    const [progress,setProgress]=useState({
-        loaded: 0,
-        total: 100,
-        toMbSize: null
-    });
-
-    useEffect(function () {
-        loadingTask.onProgress=setProgress;
-        return ()=> {
-            loadingTask.onProgress = null;
-        };
-    },[loadingTask]);
-
-    const percentage=`${Math.floor((progress.loaded/progress.total)*100)}%`;
-
-    return <div className={css.progressWrap}>
-        <div
-            className={css.progressBar}
-            style={{
-                backgroundImage: `linear-gradient(to right,#16a085 0%,#16a085 ${percentage},#ecf0f1 ${percentage},#ecf0f1 100%)`
-            }}
-        />
-        <p className={css.progressTip}>
-            PDF加载中，目前 {percentage} (总共 {(progress.total / 1048576).toFixed(1)} MB)
-        </p>
-    </div>
-};
-
-export default function NotePdf({pdf, wrapRef}){
-    const {pageScale}=useContext(PageAndBarContext);
-    const wrapWidth=wrapRef.current.clientWidth - 240;
+export default function PageAnnotate(){
+    const {pageScale,pdfUrl}=useContext(PageAndBarContext);
 
     // 在pdf文档链接变化时加载pdfDocTask
-    const pdfDocTask=useMemo(()=>handleDoc(pdf),[pdf]);
+    const pdfDocTask=useMemo(()=> {
+        if(!pdfUrl){
+
+        }
+        return handleDoc(pdfUrl);
+    },[pdfUrl]);
 
     // 储存加载完成后的pdf的代理对象和viewport
     const [pdfStore,setPdfStore]=useState({
@@ -59,9 +33,8 @@ export default function NotePdf({pdf, wrapRef}){
     */
     useEffect(function () {
         const getViewport=page=>{
-            const width=wrapWidth>300 ? wrapWidth : 300;
             const viewport = page.getViewport({scale: 1.0});
-            const scale=(devicePixelRatio * width/(viewport.width)).toFixed(1);
+            const scale=(1280/(viewport.width)).toFixed(1);
             pdfStore.firstPage=page;
             pdfStore.viewport=page.getViewport({
                 scale: + scale
@@ -93,20 +66,14 @@ export default function NotePdf({pdf, wrapRef}){
         // eslint-disable-next-line
     },[pageScale]);
 
-    // 初始化监听器，在另一个线程中监听父容器滚动
-    useEffect(function () {
-        if(!wrapRef.current) throw TypeError('NotePad父容器为空');
-        initScrollListener(wrapRef.current);
-    },[wrapRef]);
-
     return <div className={css.warp}>
         {pdfDocTask && !(pdfStore.pdfProxy)?
-            <PdfProgress loadingTask={pdfDocTask} />
+            <TaskProgress loadingTask={pdfDocTask} />
             :
             Array.from(new Array(pdfStore.pdfProxy.numPages),(item,index)=>{
                 const pageNum=index+1;
                 return <PdfPage
-                    key={`${pageNum}${pdf}`}
+                    key={`${pageNum}${pdfUrl}`}
                     pdfStore={pdfStore}
                     pageNum={pageNum}
                 />

@@ -1,11 +1,9 @@
 import './App.css';
-import PageDocument from "./Pages/PageDocument";
+import PageDocument from "./Pages/DemoPage";
 
 function App() {
     return (
-        <div className='container'>
-            <PageDocument />
-        </div>
+        <PageDocument />
     )
 }
 

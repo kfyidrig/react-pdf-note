@@ -5,11 +5,13 @@ import PageAndBarContext from "../../shared/pageContext";
 export default function TopBar(){
     const {setScale,pageScale}=useContext(PageAndBarContext);
 
+    const stepValue=window.innerWidth>800?0.5 : 1;
+
     const handleEnlarge=()=>{
-        setScale(pageScale>=0? pageScale+0.2 : 0.2);
+        setScale(pageScale-stepValue);
     };
     const handleReduce=()=>{
-        setScale(pageScale<=0? pageScale-0.2 : -0.2);
+        setScale(pageScale+stepValue);
     };
     return <div className={css.warp}>
         <span className={css.itemWrap} onClick={handleEnlarge}>

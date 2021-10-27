@@ -28,9 +28,9 @@ const getPdfPage=(pdfDocumentProxy,pageNum)=>{
 const getViewport=(pdfDocumentProxy,idealWidth)=>{
     return getPdfPage(pdfDocumentProxy,1).then(page=>{
         const viewport = page.getViewport({scale: 1.0});
-        const scale=(idealWidth/(viewport.width)).toFixed(1);
+        const scale=idealWidth/(viewport.width);
         return page.getViewport({
-            scale: + scale
+            scale
         });
     });
 };

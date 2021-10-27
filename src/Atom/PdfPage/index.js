@@ -1,9 +1,7 @@
 import css from './index.module.css'
-import React, {useEffect, useState,useMemo,useCallback} from "react";
+import React, {useEffect, useState, useCallback, useRef} from "react";
 import {getPdfPage} from "../../shared/pdf2png";
-import {addListenTarget} from "../../shared/scrollListen";
-
-const dpi=devicePixelRatio;
+import {addListenTarget, removeTarget} from "../../shared/scrollListen";
 
 function NoteAndCanvas({pageNum,view,proxy}){
     const canvasRef=React.createRef();
@@ -28,7 +26,7 @@ function NoteAndCanvas({pageNum,view,proxy}){
         getPdfPage(proxy,pageNum).then(page=>{
              timer=setTimeout(()=>{
                 renderToCanvas(page);
-            },200);
+            },230);
         });
         return ()=>{
             clearTimeout(timer);
@@ -36,25 +34,26 @@ function NoteAndCanvas({pageNum,view,proxy}){
         // eslint-disable-next-line
     },[view]);
     return <canvas
+        className={css.pdfCanvas}
         ref={canvasRef}
-        style={{
-            width: ~~(view.width/dpi),
-            height: ~~(view.height/dpi)
-        }}
     />
 }
 
-export default function PdfPage({pdfDocProxy,viewport,pageNum}){
+export default function PdfPage({pdfDocProxy,viewport,pageNum,pageScale}){
     const [showPage,setShow]=useState(false);
-    const pageRef=useMemo(()=>React.createRef(),[]);
+    const pageRef=useRef();
 
     const handleShow=useCallback((status)=>{
         setShow(status==='show');
     },[]);
 
     useEffect(function () {
-        if(!pageRef.current) throw new TypeError('pageRef 不存在');
-        addListenTarget(pageRef.current,pageNum,handleShow);
+        const element=pageRef.current;
+        if(!element) throw new TypeError('pageRef 不存在');
+        addListenTarget(element,pageNum,handleShow);
+        return ()=>{
+            removeTarget(element);
+        }
         // eslint-disable-next-line
     },[]);
 
@@ -63,8 +62,9 @@ export default function PdfPage({pdfDocProxy,viewport,pageNum}){
         data-page={pageNum}
         className={css.wrap}
         style={{
-            width: Math.floor(viewport.width/dpi),
-            height: Math.floor(viewport.height/dpi)
+            width: Math.floor(viewport.width / pageScale),
+            height: Math.floor(viewport.height / pageScale),
+            margin: `${~~(30/pageScale)}px auto`
         }}>
         {showPage?
             <NoteAndCanvas

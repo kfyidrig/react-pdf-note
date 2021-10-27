@@ -5,9 +5,11 @@ import PageAnnotate from "../PageHandler";
 import PageAndBarContext from "../../shared/pageContext";
 import {initScrollListener} from "../../shared/scrollListen";
 
+const initScale=devicePixelRatio/(window.innerWidth>1200? 0.65: 0.9);
+
 export default function PdfAnnotate({pdf}) {
     const [wrapWidth,setWidth]=useState(0);
-    const [pageScale,setScale]=useState(0);
+    const [pageScale,setScale]=useState(initScale);
     const measuredRef=useCallback(node => {
         if (node !== null) {
             initScrollListener(node);
@@ -20,7 +22,8 @@ export default function PdfAnnotate({pdf}) {
             pageScale,
             setScale,
             pdfUrl: pdf,
-            wrapWidth
+            wrapWidth,
+
         }
     },[setScale,pageScale,pdf,wrapWidth]);
 

@@ -13,7 +13,7 @@ const initScrollListener=container=>{
     listener = new IntersectionObserver(handlePositionMid,{
         root: container,
         rootMargin: '0px',
-        threshold: [0, 0.1,0.2,0.3,0.4,0.5,1]
+        threshold: [0.1,0.9]
     });
     console.log('滚动监听已初始化');
 }
@@ -25,10 +25,10 @@ const addListenTarget=(element,pageNum,callback)=>{
     lastStatus[pageNum]='hidden';
 }
 
-const removeAllTarget=()=>{
+const removeTarget=target=>{
     if(listener){
-        listener.disconnect();
+        listener.unobserve(target);
     }
 }
 
-export {addListenTarget,initScrollListener,removeAllTarget};
+export {addListenTarget,initScrollListener,removeTarget};

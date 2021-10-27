@@ -4,11 +4,13 @@ import {getPdfDoc, getViewport} from "../../shared/pdf2png";
 import PdfPage from "../PdfPage";
 import PageAndBarContext from "../../shared/pageContext";
 import TaskProgress from "../TaskProgress";
-import {removeAllTarget} from "../../shared/scrollListen";
+import pageContext from "../../shared/pageContext";
 
 export default function PageAnnotate(){
     const statusRef=useRef({
-        completeFlag: false
+        completeFlag: false,
+        wrapRef: null,
+        lastScale: 0
     });
 
     const {pdfUrl}=useContext(PageAndBarContext);
@@ -16,7 +18,6 @@ export default function PageAnnotate(){
     // 在pdf文档链接变化时加载pdfDocTask
     const pdfDocLoadingTask=useMemo(()=>{
         statusRef.current.completeFlag=false;
-        removeAllTarget();
         return getPdfDoc(pdfUrl);
     },[pdfUrl]);
 
@@ -49,12 +50,41 @@ export default function PageAnnotate(){
     // 储存pdfDocProxy对应的viewport，将每个页面视为一样大
     const [viewport,setViewport]=useState(null);
 
+    const handleRef=useCallback(node=>{
+        statusRef.current.wrapRef=node;
+    },[]);
+
     useEffect(function () {
-        if(pdfDocProxy) getViewport(pdfDocProxy,1280).then(view=>{
+        const deviceWidth=window.innerWidth;
+        if(pdfDocProxy) getViewport(pdfDocProxy,(deviceWidth<1000?1000:deviceWidth)*devicePixelRatio ).then(view=>{
             statusRef.current.completeFlag=true;
             setViewport(view);
         });
     },[pdfDocProxy]);
+
+    // 在页面缩放时保持当前页面仍然在可视窗口
+    const {pageScale}=useContext(pageContext);
+    const {lastScale}=statusRef.current;
+    useEffect(function () {
+        if(statusRef.current.completeFlag){
+            const node=statusRef.current.wrapRef,
+                nodeHeight=node.clientHeight,
+                scrollTop=node.scrollTop + (nodeHeight>>1),
+                // scrollTop=node.scrollTop,
+                nodeWidth=node.clientWidth,
+                scrollLeft=node.scrollLeft + (nodeWidth>>1),
+                // scrollLeft=node.scrollLeft,
+                scale=lastScale / pageScale;
+            node.scrollTo(
+                ~~(scrollLeft*scale)-(nodeWidth>>1),
+                ~~(scrollTop*scale)-(nodeHeight>>1)
+                // ~~(scrollLeft*scale),
+                // ~~(scrollTop*scale)
+            );
+        }
+        statusRef.current.lastScale=pageScale;
+        // eslint-disable-next-line
+    },[pageScale]);
 
     const {completeFlag}=statusRef.current;
 
@@ -62,7 +92,7 @@ export default function PageAnnotate(){
         <TaskProgress loadingTask={pdfDocLoadingTask} />
     </div>
 
-    return <div className={css.warp}>
+    return <div className={css.warp} ref={handleRef}>
         {Array.from(new Array(pdfDocProxy.numPages), (item, index) => {
             const pageNum = index + 1;
             return <PdfPage
@@ -70,6 +100,7 @@ export default function PageAnnotate(){
                 pdfDocProxy={pdfDocProxy}
                 viewport={viewport}
                 pageNum={pageNum}
+                pageScale={pageScale}
             />
         })}
     </div>

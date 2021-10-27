@@ -1,5 +1,8 @@
 .wrap{
-    margin: 12px auto;
     background-color: white;
     height: 100px;
+}
+.pdfCanvas{
+    width: 100%;
+    height: 100%;
 }

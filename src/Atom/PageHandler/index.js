@@ -1,83 +1,76 @@
 import css from './index.module.css';
-import {useEffect, useMemo, useState,useContext} from 'react';
-import {handleDoc, handlePage} from "../../shared/pdf2png";
+import {useEffect, useMemo, useState, useContext, useCallback, useRef} from 'react';
+import {getPdfDoc, getViewport} from "../../shared/pdf2png";
 import PdfPage from "../PdfPage";
 import PageAndBarContext from "../../shared/pageContext";
 import TaskProgress from "../TaskProgress";
+import {removeAllTarget} from "../../shared/scrollListen";
 
 export default function PageAnnotate(){
-    const {pageScale,pdfUrl}=useContext(PageAndBarContext);
-
-    // 在pdf文档链接变化时加载pdfDocTask
-    const pdfDocTask=useMemo(()=> {
-        if(!pdfUrl){
-
-        }
-        return handleDoc(pdfUrl);
-    },[pdfUrl]);
-
-    // 储存加载完成后的pdf的代理对象和viewport
-    const [pdfStore,setPdfStore]=useState({
-        pdfProxy: null,
-        viewport: null,
-        firstPage:null
+    const statusRef=useRef({
+        completeFlag: false
     });
 
+    const {pdfUrl}=useContext(PageAndBarContext);
+
+    // 在pdf文档链接变化时加载pdfDocTask
+    const pdfDocLoadingTask=useMemo(()=>{
+        statusRef.current.completeFlag=false;
+        removeAllTarget();
+        return getPdfDoc(pdfUrl);
+    },[pdfUrl]);
+
+    // 储存每个链接对应的pdf文档代理
+    const [pdfDocProxy,setProxy]=useState(null);
+
     /**
-     * @Description: 获取加载成功的pdfDocTask信息储存在pdfStore中
+     * @Description: 更新pdfDocProxy指定值，并销毁之前实例
      * @author Liu Can
      * @email 313720186@qq.com
-     * @date 2021/10/16
-     * @param {object} proxy
+     * @date 2021/10/27
+     * @param {pdfDocProxy} proxy
      * @return void
     */
-    useEffect(function () {
-        const getViewport=page=>{
-            const viewport = page.getViewport({scale: 1.0});
-            const scale=(1280/(viewport.width)).toFixed(1);
-            pdfStore.firstPage=page;
-            pdfStore.viewport=page.getViewport({
-                scale: + scale
-            });
-            setPdfStore({...pdfStore});
+    const handleNewProxy=useCallback(proxy=>{
+        if(pdfDocProxy){
+            pdfDocProxy.destroy();
+            pdfDocProxy.cleanup();
         }
-        const getPage=async proxy=>{
-            const {numPages}=proxy;
-            if(numPages<1) throw new RangeError(`pdf文档页数为${numPages}`);
-            pdfStore.pdfProxy?.destroy();
-            pdfStore.pdfProxy?.cleanup();
-            pdfStore.pdfProxy=proxy;
-            handlePage(proxy,1).then(getViewport);
-        }
-        pdfDocTask.promise.then(getPage);
+        setProxy(proxy);
         // eslint-disable-next-line
-    },[pdfDocTask]);
+    },[]);
+
+    // 在pdfDocLoadingTask更新后及时创建pdfDocProxy对象
+    useEffect(function () {
+        pdfDocLoadingTask.promise.then(handleNewProxy);
+        // eslint-disable-next-line
+    },[pdfDocLoadingTask]);
+
+    // 储存pdfDocProxy对应的viewport，将每个页面视为一样大
+    const [viewport,setViewport]=useState(null);
 
     useEffect(function () {
-        if(pdfStore.viewport){
-            const lastScale=pageScale + pdfStore.viewport.scale;
-            setPdfStore({
-                ...pdfStore,
-                viewport: pdfStore.firstPage.getViewport({
-                    scale: lastScale
-                })
-            });
-        }
-        // eslint-disable-next-line
-    },[pageScale]);
+        if(pdfDocProxy) getViewport(pdfDocProxy,1280).then(view=>{
+            statusRef.current.completeFlag=true;
+            setViewport(view);
+        });
+    },[pdfDocProxy]);
+
+    const {completeFlag}=statusRef.current;
+
+    if(!completeFlag) return <div className={css.warp}>
+        <TaskProgress loadingTask={pdfDocLoadingTask} />
+    </div>
 
     return <div className={css.warp}>
-        {pdfDocTask && !(pdfStore.pdfProxy)?
-            <TaskProgress loadingTask={pdfDocTask} />
-            :
-            Array.from(new Array(pdfStore.pdfProxy.numPages),(item,index)=>{
-                const pageNum=index+1;
-                return <PdfPage
-                    key={`${pageNum}${pdfUrl}`}
-                    pdfStore={pdfStore}
-                    pageNum={pageNum}
-                />
-            })
-        }
+        {Array.from(new Array(pdfDocProxy.numPages), (item, index) => {
+            const pageNum = index + 1;
+            return <PdfPage
+                key={`${pageNum}${pdfUrl}`}
+                pdfDocProxy={pdfDocProxy}
+                viewport={viewport}
+                pageNum={pageNum}
+            />
+        })}
     </div>
 }

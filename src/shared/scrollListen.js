@@ -5,15 +5,11 @@ const callbacks= {};
 const lastStatus={};
 
 const handlePositionMid=changList=>{
-
     handlePosition(changList,callbacks,lastStatus);
 }
 
 const initScrollListener=container=>{
-    if(listener) {
-        listener.disconnect();
-        listener=null;
-    }
+    if(listener) throw new Error('滚动监听已经存在');
     listener = new IntersectionObserver(handlePositionMid,{
         root: container,
         rootMargin: '0px',
@@ -29,4 +25,10 @@ const addListenTarget=(element,pageNum,callback)=>{
     lastStatus[pageNum]='hidden';
 }
 
-export {addListenTarget,initScrollListener};
+const removeAllTarget=()=>{
+    if(listener){
+        listener.disconnect();
+    }
+}
+
+export {addListenTarget,initScrollListener,removeAllTarget};

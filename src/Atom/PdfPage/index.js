@@ -1,6 +1,6 @@
 import css from './index.module.css'
 import React, {useEffect, useState,useMemo,useCallback} from "react";
-import {handlePage} from "../../shared/pdf2png";
+import {getPdfPage} from "../../shared/pdf2png";
 import {addListenTarget} from "../../shared/scrollListen";
 
 const dpi=devicePixelRatio;
@@ -25,7 +25,7 @@ function NoteAndCanvas({pageNum,view,proxy}){
             });
         }
         let timer=null;
-        handlePage(proxy,pageNum).then(page=>{
+        getPdfPage(proxy,pageNum).then(page=>{
              timer=setTimeout(()=>{
                 renderToCanvas(page);
             },200);
@@ -44,13 +44,7 @@ function NoteAndCanvas({pageNum,view,proxy}){
     />
 }
 
-export default function PdfPage({pdfStore,pageNum}){
-
-    if(!pdfStore?.viewport || !pdfStore.pdfProxy) {
-        throw new TypeError('PdfPage组件缺少参数');
-    }
-
-    const {viewport,pdfProxy}=pdfStore;
+export default function PdfPage({pdfDocProxy,viewport,pageNum}){
     const [showPage,setShow]=useState(false);
     const pageRef=useMemo(()=>React.createRef(),[]);
 
@@ -74,7 +68,7 @@ export default function PdfPage({pdfStore,pageNum}){
         }}>
         {showPage?
             <NoteAndCanvas
-                proxy={pdfProxy}
+                proxy={pdfDocProxy}
                 pageNum={pageNum}
                 view={viewport}
             />

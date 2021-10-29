@@ -39,7 +39,7 @@ function NoteAndCanvas({pageNum,view,proxy}){
     />
 }
 
-export default function PdfPage({pdfDocProxy,viewport,pageNum,pageScale}){
+export default function PdfPage({pdfDocProxy,viewport,pageNum,docSize}){
     const [showPage,setShow]=useState(false);
     const pageRef=useRef();
 
@@ -61,11 +61,7 @@ export default function PdfPage({pdfDocProxy,viewport,pageNum,pageScale}){
         ref={pageRef}
         data-page={pageNum}
         className={css.wrap}
-        style={{
-            width: Math.floor(viewport.width / pageScale),
-            height: Math.floor(viewport.height / pageScale),
-            margin: `${~~(30/pageScale)}px auto`
-        }}>
+        style={docSize}>
         {showPage?
             <NoteAndCanvas
                 proxy={pdfDocProxy}

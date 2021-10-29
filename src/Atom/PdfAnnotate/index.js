@@ -5,31 +5,35 @@ import PageAnnotate from "../PageHandler";
 import PageAndBarContext from "../../shared/pageContext";
 import {initScrollListener} from "../../shared/scrollListen";
 
-const initScale=devicePixelRatio/(window.innerWidth>1200? 0.65: 0.9);
-
 export default function PdfAnnotate({pdf}) {
-    const [wrapWidth,setWidth]=useState(0);
-    const [pageScale,setScale]=useState(initScale);
+    const [docWidth,setDocWidth]=useState({
+        wrapWidth: 0,
+        userScale: 0,
+        zoomValue: 0
+    });
     const measuredRef=useCallback(node => {
         if (node !== null) {
             initScrollListener(node);
-            setWidth(node.getBoundingClientRect().width);
+            const {width}=node.getBoundingClientRect();
+            setDocWidth({
+                wrapWidth: width,
+                userScale: Math.floor(width<600?width-16:width*0.7)
+            });
         }
     }, []);
 
     const providerValue=useMemo(()=>{
         return {
-            pageScale,
-            setScale,
+            docWidth,
+            setDocWidth,
             pdfUrl: pdf,
-            wrapWidth,
 
         }
-    },[setScale,pageScale,pdf,wrapWidth]);
+    },[docWidth,pdf]);
 
     return <div className={css.wrap} ref={measuredRef}>
         <PageAndBarContext.Provider value={providerValue}>
-            {wrapWidth ? <PageAnnotate /> : null}
+            {docWidth.userScale ? <PageAnnotate /> : null}
             <TopBar />
         </PageAndBarContext.Provider>
     </div>

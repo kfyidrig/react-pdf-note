@@ -1,6 +1,6 @@
 .warp{
     position: absolute;
-    padding: 0 12px;
+    padding: 0 20px;
     top: 0;
     left: 0;
     width: 100%;
@@ -9,11 +9,11 @@
     box-shadow: rgba(26, 26, 26,.2) 0 0 3px;
 }
 .itemWrap{
-    margin: 7px 10px 0 0;
+    margin: 11px 11px 0 0;
     display: inline-block;
-    height: 48px;
-    width: 48px;
-    border-radius: 6px;
+    height: 42px;
+    width: 42px;
+    border-radius: 4px;
     cursor: pointer;
     background-color: rgb(244,244,244);
 }
@@ -21,7 +21,7 @@
     display: inline-block;
     margin: 9px;
     padding: 0;
-    width: 30px;
+    width: 24px;
     height: auto;
     fill: #323232;
 }

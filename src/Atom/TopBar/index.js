@@ -2,16 +2,18 @@ import css from './index.module.css';
 import {useContext} from 'react';
 import PageAndBarContext from "../../shared/pageContext";
 
-export default function TopBar(){
-    const {setScale,pageScale}=useContext(PageAndBarContext);
+const stepPixel=Math.floor(window.innerWidth / 10);
 
-    const stepValue=window.innerWidth>800?0.5 : 1;
+export default function TopBar(){
+    const {docWidth,setDocWidth}=useContext(PageAndBarContext);
 
     const handleEnlarge=()=>{
-        setScale(pageScale-stepValue);
+        docWidth.userScale+=stepPixel;
+        setDocWidth({...docWidth})
     };
     const handleReduce=()=>{
-        setScale(pageScale+stepValue);
+        docWidth.userScale-=stepPixel;
+        setDocWidth({...docWidth})
     };
     return <div className={css.warp}>
         <span className={css.itemWrap} onClick={handleEnlarge}>

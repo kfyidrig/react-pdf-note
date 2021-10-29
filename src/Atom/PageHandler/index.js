@@ -6,6 +6,7 @@ import PageAndBarContext from "../../shared/pageContext";
 import TaskProgress from "../TaskProgress";
 import pageContext from "../../shared/pageContext";
 import scrollAnchor from "../../shared/scrollAnchor";
+import scaleCheck from "../../shared/scaleCheck";
 
 export default function PageAnnotate(){
     const statusRef=useRef({
@@ -15,7 +16,27 @@ export default function PageAnnotate(){
         lastDocSize: null
     });
 
-    const {pdfUrl}=useContext(PageAndBarContext);
+    const {pdfUrl,setDocWidth}=useContext(PageAndBarContext);
+
+    // 将本组件的div存放在statusRef
+    const handleRef=useCallback(node=>{
+        if(node){
+            statusRef.current.wrapRef=node;
+            // 处理鼠标滚轮缩放
+            node.addEventListener('wheel',event=>{
+                const {ctrlKey,deltaY}=event;
+                if(ctrlKey){
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if(scaleCheck(docWidth.userScale-deltaY)){
+                        docWidth.userScale-=deltaY
+                        setDocWidth({...docWidth});
+                    }
+                }
+            });
+        }
+        // eslint-disable-next-line
+    },[]);
 
     // 在pdf文档链接变化时加载pdfDocTask
     const pdfDocLoadingTask=useMemo(()=>{
@@ -52,10 +73,6 @@ export default function PageAnnotate(){
     // 储存pdfDocProxy对应的viewport，将每个页面视为一样大
     const [viewport,setViewport]=useState(null);
 
-    const handleRef=useCallback(node=>{
-        statusRef.current.wrapRef=node;
-    },[]);
-
     const handleNewView=useCallback((proxy,width)=>{
         getViewport(proxy,width ).then(view=>{
             statusRef.current.completeFlag=true;
@@ -88,21 +105,24 @@ export default function PageAnnotate(){
         // eslint-disable-next-line
     },[docWidth,completeFlag]);
 
+    // 在页面缩放时保持当前页面仍然在可视窗口
+    useEffect(function () {
+        if(docSize){
+            scrollAnchor(
+                statusRef.current.wrapRef,
+                {
+                    width: Math.floor(viewport.width /devicePixelRatio),
+                    height: Math.floor(viewport.height / devicePixelRatio)
+                },
+                docSize
+            );
+        }
+        // eslint-disable-next-line
+    },[docSize]);
+
     if(!completeFlag) return <div className={css.warp}>
         <TaskProgress loadingTask={pdfDocLoadingTask} />
     </div>
-
-    // 在页面缩放时保持当前页面仍然在可视窗口
-    if(Math.abs(docWidth.userScale-viewport.width)>1){
-        scrollAnchor(
-            statusRef.current.wrapRef,
-            {
-                width: Math.floor(viewport.width /devicePixelRatio),
-                height: Math.floor(viewport.height / devicePixelRatio)
-            },
-            docSize
-        );
-    }
 
     return <div
         className={css.warp}

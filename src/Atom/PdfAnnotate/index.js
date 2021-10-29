@@ -11,6 +11,7 @@ export default function PdfAnnotate({pdf}) {
         userScale: 0,
         zoomValue: 0
     });
+
     const measuredRef=useCallback(node => {
         if (node !== null) {
             initScrollListener(node);
@@ -31,7 +32,10 @@ export default function PdfAnnotate({pdf}) {
         }
     },[docWidth,pdf]);
 
-    return <div className={css.wrap} ref={measuredRef}>
+    return <div
+        className={css.wrap}
+        ref={measuredRef}
+    >
         <PageAndBarContext.Provider value={providerValue}>
             {docWidth.userScale ? <PageAnnotate /> : null}
             <TopBar />

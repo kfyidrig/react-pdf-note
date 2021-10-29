@@ -1,5 +1,5 @@
 import css from './index.module.css';
-import {useEffect, useMemo, useState, useContext, useCallback, useRef,} from 'react';
+import {useEffect, useMemo, useState, useContext, useCallback, useRef,useLayoutEffect} from 'react';
 import {getPdfDoc, getViewport} from "../../shared/pdf2png";
 import PdfPage from "../PdfPage";
 import PageAndBarContext from "../../shared/pageContext";
@@ -9,36 +9,36 @@ import scrollAnchor from "../../shared/scrollAnchor";
 import scaleCheck from "../../shared/scaleCheck";
 
 export default function PageAnnotate(){
+    // 用于保存一些状态
     const statusRef=useRef({
         completeFlag: false,
         wrapRef: null,
-        viewTask: 0,
-        lastDocSize: null
+        lastDocSize: null,
+        completedUpdate: false
     });
 
-    const {pdfUrl,setDocWidth}=useContext(PageAndBarContext);
+    statusRef.current.completedUpdate=true;
 
     // 将本组件的div存放在statusRef
-    const handleRef=useCallback(node=>{
-        if(node){
-            statusRef.current.wrapRef=node;
-            // 处理鼠标滚轮缩放
-            node.addEventListener('wheel',event=>{
-                const {ctrlKey,deltaY}=event;
-                if(ctrlKey){
-                    event.preventDefault();
-                    event.stopPropagation();
-                    if(scaleCheck(docWidth.userScale-deltaY)){
-                        docWidth.userScale-=deltaY
+    const handleRef=node=>{
+        if(!statusRef.current.wrapRef) {
+            statusRef.current.wrapRef = node;
+            node.addEventListener('wheel',e=>{
+                if(e.ctrlKey){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if(statusRef.current.completedUpdate&&scaleCheck(docWidth.userScale-e.deltaY)){
+                        docWidth.userScale-=e.deltaY;
+                        statusRef.current.completedUpdate=false
                         setDocWidth({...docWidth});
                     }
                 }
-            });
+            },{passive: false});
         }
-        // eslint-disable-next-line
-    },[]);
+    }
 
     // 在pdf文档链接变化时加载pdfDocTask
+    const {pdfUrl}=useContext(PageAndBarContext);
     const pdfDocLoadingTask=useMemo(()=>{
         statusRef.current.completeFlag=false;
         return getPdfDoc(pdfUrl);
@@ -47,14 +47,7 @@ export default function PageAnnotate(){
     // 储存每个链接对应的pdf文档代理
     const [pdfDocProxy,setProxy]=useState(null);
 
-    /**
-     * @Description: 更新pdfDocProxy指定值，并销毁之前实例
-     * @author Liu Can
-     * @email 313720186@qq.com
-     * @date 2021/10/27
-     * @param {pdfDocProxy} proxy
-     * @return void
-    */
+    // 更新pdfDocProxy指定值，并销毁之前实例
     const handleNewProxy=useCallback(proxy=>{
         if(pdfDocProxy){
             pdfDocProxy.destroy();
@@ -81,7 +74,7 @@ export default function PageAnnotate(){
     },[]);
 
     // 初次加载完pdf和用户缩放时渲染计算viewpoint
-    const {docWidth}=useContext(pageContext);
+    const {docWidth,setDocWidth}=useContext(pageContext);
     useEffect(function () {
         if(pdfDocProxy && docWidth.userScale){
             clearTimeout(statusRef.current.viewTask);
@@ -93,7 +86,19 @@ export default function PageAnnotate(){
         // eslint-disable-next-line
     },[pdfDocProxy,docWidth]);
 
-    // 计算文档页面实际大小
+    // useEffect(function () {
+    //     if(statusRef.current.wrapRef){
+    //         statusRef.current.wrapRef.addEventListener('wheel',e=>{
+    //             if(e.ctrlKey){
+    //                 e.preventDefault();
+    //                 e.stopPropagation();
+    //                 docWidth.userScale-=e.deltaY;
+    //                 setDocWidth({...docWidth});
+    //             }
+    //         },{passive: false});
+    //     }
+    // },[statusRef.current.wrapRef])
+
     const {completeFlag}=statusRef.current;
 
     const docSize=useMemo(()=>{
@@ -105,19 +110,11 @@ export default function PageAnnotate(){
         // eslint-disable-next-line
     },[docWidth,completeFlag]);
 
-    // 在页面缩放时保持当前页面仍然在可视窗口
-    useEffect(function () {
-        if(docSize){
-            scrollAnchor(
-                statusRef.current.wrapRef,
-                {
-                    width: Math.floor(viewport.width /devicePixelRatio),
-                    height: Math.floor(viewport.height / devicePixelRatio)
-                },
-                docSize
-            );
+    useLayoutEffect(function () {
+        if(statusRef.current.lastDocSize){
+            scrollAnchor(statusRef.current.wrapRef,statusRef.current.lastDocSize,docSize)
         }
-        // eslint-disable-next-line
+        statusRef.current.lastDocSize=docSize;
     },[docSize]);
 
     if(!completeFlag) return <div className={css.warp}>

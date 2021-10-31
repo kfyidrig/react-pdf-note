@@ -72,10 +72,13 @@ export default class ScrollOptimize extends Component{
 
     completeScrollDiv(preSize,curSize){
         if(this._lastScroll){
-            // const {preTop,preLeft} = this._lastScroll;
-            // return {
-            //     top: preTop * curSize.height /preSize.height
-            // }
+            const {preTop,preLeft} = this._lastScroll;
+            console.log(preTop,preLeft)
+            const curPage = Math.floor(preTop / preSize.height);
+            const offsetCompensation = (1-curSize.height/preSize.height)*curPage*20;
+            return {
+                top: preTop * curSize.height / preSize.height + offsetCompensation
+            }
         } else {
             throw new TypeError('无法获取上次滚动数据');
         }

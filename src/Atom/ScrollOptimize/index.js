@@ -21,7 +21,7 @@ export default class ScrollOptimize extends Component{
     creatChildrenComponents(){
         const {children}=this.state;
         const {nodeCount,nodeSize}=this.props;
-        // const ChildrenComponent=this.props.children;
+        const ChildrenComponent=this.props.children;
         return Array.from(new Array(nodeCount),(_,index)=>{
             const show=children? children[index] : false;
             return <div
@@ -31,12 +31,11 @@ export default class ScrollOptimize extends Component{
                 data-page={index}
             >
                 {show?
-                    // <ChildrenComponent
-                    //     style={nodeSize}
-                    //     index={index}
-                    //     {...this.props.params}
-                    // />
-                    index
+                    <ChildrenComponent
+                        style={nodeSize}
+                        index={index}
+                        {...this.props.params}
+                    />
                     :
                     null
                 }
@@ -74,10 +73,12 @@ export default class ScrollOptimize extends Component{
         if(this._lastScroll){
             const {preTop,preLeft} = this._lastScroll;
             console.log(preTop,preLeft)
+            console.log(preSize.width,curSize.width);
             const curPage = Math.floor(preTop / preSize.height);
             const offsetCompensation = (1-curSize.height/preSize.height)*curPage*20;
             return {
-                top: preTop * curSize.height / preSize.height + offsetCompensation
+                top: preTop * curSize.height / preSize.height + offsetCompensation,
+                left: preLeft+(curSize.width-preSize.width)/2
             }
         } else {
             throw new TypeError('无法获取上次滚动数据');
@@ -135,7 +136,9 @@ export default class ScrollOptimize extends Component{
         if(this._wrapRef.current){
             this._lastScroll={
                 preTop: this._wrapRef.current.scrollTop,
-                preLeft: this._wrapRef.current.scrollLeft
+                preLeft: this._wrapRef.current.scrollLeft,
+                preWidth: this._wrapRef.current.clientWidth,
+                preHeight: this._wrapRef.current.clientHeight
             }
         }
         return <div

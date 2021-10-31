@@ -1,0 +1,12 @@
+.wrap{
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+}
+.child{
+    margin: 20px auto;
+    font-size: 40px;
+    text-align: center;
+    color: white;
+    background-color: #323232;
+}

@@ -1,10 +1,9 @@
-import {Component, createRef,PureComponent} from "react";
+import {Component, createRef} from "react";
 import css from './index.module.css';
 import PdfNote from "../PdfNote";
 
 export default class ControlLayer extends Component {
     _wrapRef = createRef()
-    _listRef=createRef()
 
     state = {
         pageSize: {
@@ -62,7 +61,6 @@ export default class ControlLayer extends Component {
                     pageSize={this.state.pageSize}
                     docStore={this.props.docStore}
                     wrapSize={wrapSize}
-                    ref={this._listRef}
                 />
                 :
                 null

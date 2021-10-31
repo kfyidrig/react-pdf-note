@@ -2,10 +2,10 @@ import {handlePosition} from "./handleScroll";
 
 let listener=null;
 const callbacks= {};
-const lastStatus={};
+const laststate={};
 
 const handlePositionMid=changList=>{
-    handlePosition(changList,callbacks,lastStatus);
+    handlePosition(changList,callbacks,laststate);
 }
 
 const initScrollListener=container=>{
@@ -22,7 +22,7 @@ const addListenTarget=(element,pageNum,callback)=>{
     if(!listener) throw new TypeError('滚动监听实例listener为空');
     listener.observe(element);
     callbacks[pageNum]=callback;
-    lastStatus[pageNum]='hidden';
+    laststate[pageNum]='hidden';
 }
 
 const removeTarget=target=>{

@@ -10,26 +10,26 @@ import scaleCheck from "../../shared/scaleCheck";
 
 export default function PageAnnotate(){
     // 用于保存一些状态
-    const statusRef=useRef({
+    const stateRef=useRef({
         completeFlag: false,
         wrapRef: null,
         lastDocSize: null,
         completedUpdate: false
     });
 
-    statusRef.current.completedUpdate=true;
+    stateRef.current.completedUpdate=true;
 
-    // 将本组件的div存放在statusRef
+    // 将本组件的div存放在stateRef
     const handleRef=node=>{
-        if(!statusRef.current.wrapRef) {
-            statusRef.current.wrapRef = node;
+        if(!stateRef.current.wrapRef) {
+            stateRef.current.wrapRef = node;
             node.addEventListener('wheel',e=>{
                 if(e.ctrlKey){
                     e.preventDefault();
                     e.stopPropagation();
-                    if(statusRef.current.completedUpdate&&scaleCheck(docWidth.userScale-e.deltaY)){
+                    if(stateRef.current.completedUpdate&&scaleCheck(docWidth.userScale-e.deltaY)){
                         docWidth.userScale-=e.deltaY;
-                        statusRef.current.completedUpdate=false
+                        stateRef.current.completedUpdate=false
                         setDocWidth({...docWidth});
                     }
                 }
@@ -40,7 +40,7 @@ export default function PageAnnotate(){
     // 在pdf文档链接变化时加载pdfDocTask
     const {pdfUrl}=useContext(PageAndBarContext);
     const pdfDocLoadingTask=useMemo(()=>{
-        statusRef.current.completeFlag=false;
+        stateRef.current.completeFlag=false;
         return getPdfDoc(pdfUrl);
     },[pdfUrl]);
 
@@ -68,7 +68,7 @@ export default function PageAnnotate(){
 
     const handleNewView=useCallback((proxy,width)=>{
         getViewport(proxy,width ).then(view=>{
-            statusRef.current.completeFlag=true;
+            stateRef.current.completeFlag=true;
             setViewport(view);
         });
     },[]);
@@ -77,8 +77,8 @@ export default function PageAnnotate(){
     const {docWidth,setDocWidth}=useContext(pageContext);
     useEffect(function () {
         if(pdfDocProxy && docWidth.userScale){
-            clearTimeout(statusRef.current.viewTask);
-            statusRef.current.viewTask=setTimeout(
+            clearTimeout(stateRef.current.viewTask);
+            stateRef.current.viewTask=setTimeout(
                 handleNewView.bind(null,pdfDocProxy,docWidth.userScale),
                 300
             );
@@ -87,8 +87,8 @@ export default function PageAnnotate(){
     },[pdfDocProxy,docWidth]);
 
     // useEffect(function () {
-    //     if(statusRef.current.wrapRef){
-    //         statusRef.current.wrapRef.addEventListener('wheel',e=>{
+    //     if(stateRef.current.wrapRef){
+    //         stateRef.current.wrapRef.addEventListener('wheel',e=>{
     //             if(e.ctrlKey){
     //                 e.preventDefault();
     //                 e.stopPropagation();
@@ -97,9 +97,9 @@ export default function PageAnnotate(){
     //             }
     //         },{passive: false});
     //     }
-    // },[statusRef.current.wrapRef])
+    // },[stateRef.current.wrapRef])
 
-    const {completeFlag}=statusRef.current;
+    const {completeFlag}=stateRef.current;
 
     const docSize=useMemo(()=>{
         if(viewport) return {
@@ -111,10 +111,10 @@ export default function PageAnnotate(){
     },[docWidth,completeFlag]);
 
     useLayoutEffect(function () {
-        if(statusRef.current.lastDocSize){
-            scrollAnchor(statusRef.current.wrapRef,statusRef.current.lastDocSize,docSize)
+        if(stateRef.current.lastDocSize){
+            scrollAnchor(stateRef.current.wrapRef,stateRef.current.lastDocSize,docSize)
         }
-        statusRef.current.lastDocSize=docSize;
+        stateRef.current.lastDocSize=docSize;
     },[docSize]);
 
     if(!completeFlag) return <div className={css.warp}>

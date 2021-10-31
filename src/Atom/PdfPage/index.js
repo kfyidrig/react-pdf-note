@@ -43,8 +43,8 @@ export default function PdfPage({pdfDocProxy,viewport,pageNum,docSize}){
     const [showPage,setShow]=useState(false);
     const pageRef=useRef();
 
-    const handleShow=useCallback((status)=>{
-        setShow(status==='show');
+    const handleShow=useCallback((state)=>{
+        setShow(state==='show');
     },[]);
 
     useEffect(function () {

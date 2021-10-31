@@ -1,13 +1,13 @@
-const handlePosition=(changList,callbacks,lastStatus)=>{
+const handlePosition=(changList,callbacks,laststate)=>{
     changList.forEach(item=>{
         const {page}=item.target.dataset;
         const {intersectionRatio} =item;
         if(!isNaN(+page)){
-            if(intersectionRatio<0.01 && lastStatus[page]==='show'){
-                lastStatus[page]='hidden';
+            if(intersectionRatio<0.01 && laststate[page]==='show'){
+                laststate[page]='hidden';
                 callbacks[page]?.('hidden');
-            } else if(intersectionRatio>0 && lastStatus[page]==='hidden'){
-                lastStatus[page]='show';
+            } else if(intersectionRatio>0 && laststate[page]==='hidden'){
+                laststate[page]='show';
                 callbacks[page]?.('show');
             }
         } else {

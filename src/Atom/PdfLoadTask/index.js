@@ -1,4 +1,4 @@
-import {Component,Fragment} from "react";
+import {Component} from "react";
 import {getPdfDoc} from "../../shared/pdf2png";
 import PdfProgress from "../PdfProgress";
 import PdfDocProxy from "../PdfDocProxy";
@@ -33,12 +33,16 @@ export default class PdfLoadTask extends Component{
         });
     }
 
-    render() {
-        const {task,rawProxy}=this.state;
+    componentDidMount() {
+        const {task}=this.state;
         if(task) {
             this.handleNewUrl(task);
-            return <PdfProgress task={task}/>
         }
+    }
+
+    render() {
+        const {rawProxy,task}=this.state;
+        if(task) return <PdfProgress task={task}/>
         return <PdfDocProxy rawProxy={rawProxy}/>
     }
 }

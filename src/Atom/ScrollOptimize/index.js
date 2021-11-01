@@ -12,7 +12,7 @@ export default class ScrollOptimize extends Component{
         current: null
     }
 
-    _lastScroll=null
+    _preWrapState=null
 
     _childrenShow= null
 
@@ -62,18 +62,18 @@ export default class ScrollOptimize extends Component{
         }
     }
 
-    handleWheelZoom(event){
-        if(event.ctrlKey){
-            event.stopPropagation();
-            event.preventDefault();
-        }
-    }
+    // handleWheelZoom(event){
+    //     if(event.ctrlKey){
+    //         event.stopPropagation();
+    //         event.preventDefault();
+    //     }
+    // }
 
-    completeScrollDiv(preSize,curSize){
-        if(this._lastScroll){
-            const {preTop,preLeft} = this._lastScroll;
-            console.log(preTop,preLeft)
-            console.log(preSize.width,curSize.width);
+
+    completeScrollDiv(preSize,curSize,preWrapSize,scaleCtr){
+        if(this._wrapRef.current){
+            const preTop=preWrapSize.top,
+                preLeft=preWrapSize.left
             const curPage = Math.floor(preTop / preSize.height);
             const offsetCompensation = (1-curSize.height/preSize.height)*curPage*20;
             return {
@@ -108,18 +108,18 @@ export default class ScrollOptimize extends Component{
             throw new TypeError('读取孩子节点发生错误');
         }
 
-        this._wrapRef.current.addEventListener('wheel',this.handleWheelZoom.bind(this),{
-            passive: false,
-            capture: true
-        })
+        // this._wrapRef.current.addEventListener('wheel',this.handleWheelZoom.bind(this),{
+        //     passive: false,
+        //     capture: true
+        // })
     }
 
     componentDidUpdate(prevProps) {
         if(prevProps.nodeSize.height!==this.props.nodeSize.height){
-            console.log('需要校正滚动位置')
             this._wrapRef.current.scrollTo(this.completeScrollDiv(
                 prevProps.nodeSize,
-                this.props.nodeSize
+                this.props.nodeSize,
+                this._preWrapState
             ));
         }
     }
@@ -133,13 +133,14 @@ export default class ScrollOptimize extends Component{
     }
 
     render() {
-        if(this._wrapRef.current){
-            this._lastScroll={
-                preTop: this._wrapRef.current.scrollTop,
-                preLeft: this._wrapRef.current.scrollLeft,
-                preWidth: this._wrapRef.current.clientWidth,
-                preHeight: this._wrapRef.current.clientHeight
-            }
+        const wrap=this._wrapRef.current;
+        if(wrap){
+            this._preWrapState={
+                top: wrap.scrollTop,
+                left: wrap.scrollLeft,
+                width: wrap.clientWidth,
+                preHeight: wrap.clientHeight
+            };
         }
         return <div
             className={css.wrap}

@@ -12,8 +12,9 @@ export default class ControlLayer extends Component {
         }
     }
 
-    handleScroll = (function (event) {
+    handleWheelScale = (function (event) {
         if (event.ctrlKey) {
+            // console.log(event)
             event.preventDefault();
             event.stopPropagation();
             const {width} = this.state.pageSize,
@@ -28,8 +29,12 @@ export default class ControlLayer extends Component {
         }
     }).bind(this)
 
+    handleFiguresScale=function (event){
+        console.log(event)
+    }
+
     componentDidMount() {
-        this._wrapRef.current.addEventListener('wheel', this.handleScroll, {
+        this._wrapRef.current.addEventListener('wheel', this.handleWheelScale, {
             passive: false,
             capture: true
         });
@@ -40,13 +45,6 @@ export default class ControlLayer extends Component {
                 height: 0
             }
         })
-    }
-
-    componentWillUnmount() {
-        this._wrapRef.current.removeEventListener('wheel', this.handleScroll, {
-            passive: false,
-            capture: true
-        });
     }
 
     render() {

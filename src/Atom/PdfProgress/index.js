@@ -21,6 +21,10 @@ export default class PdfProgress extends Component{
         task.onProgress=this.handleProgress.bind(this);
     }
 
+    componentWillUnmount() {
+        this.props.task.onProgress=null;
+    }
+
     render() {
         const {progress,mbSize}=this.state;
         return <div>

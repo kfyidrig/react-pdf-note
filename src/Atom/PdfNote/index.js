@@ -8,6 +8,8 @@ export default class PdfNote extends Component{
         styleScale: 0
     }
 
+    _newViewportTask=0
+
     componentDidMount(){
         this.props.docStore.setViewport(this.props.pageSize.width).then(viewport=>{
             this.setState({
@@ -15,6 +17,12 @@ export default class PdfNote extends Component{
                 styleScale:viewport.height / viewport.width / devicePixelRatio
             });
         });
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if(prevProps.pageSize.width!==this.props.pageSize.width){
+            this.props.docStore.setViewport(this.props.pageSize.width);
+        }
     }
 
     render() {
